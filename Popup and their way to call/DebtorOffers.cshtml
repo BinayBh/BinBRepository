@@ -1,0 +1,400 @@
+﻿@model Uniconta.ClientTools.DataModel.DebtorOfferPortal
+@using Uniconta_Web.CustomHtmlHelpers;
+@using Uniconta.ClientTools;
+@using Uniconta.Common;
+@{
+    Layout = "~/Views/Shared/MasterPage.cshtml";
+    var cmpDetails = ViewBag.CompanyDetatil;
+    ViewBag.Title = Localization.lookup("Offers");
+}
+
+<h2 class="sub-header">
+    @Html.Raw(Localization.lookup("Offers"))
+</h2>
+@(ToolBarHelper.CustomToolbar(Html.DevExtreme().Toolbar(), "ToolBarUniconta")
+        .Items(items =>
+        {
+            items.Add()
+            .LocateInMenu(ToolbarItemLocateInMenuMode.Auto)
+                .Widget(w => w
+                .Button()
+                   .ElementAttr(new Dictionary<string, object>() { { "class", "TopMenuButton" } })
+                   .ID("btnCreateDebOffer")
+                   .Icon("add")
+                   .HoverStateEnabled(true)
+                   .Text(@Html.Raw(Localization.lookup("Add")).ToString())
+                   .UseSubmitBehavior(false)).Location(ToolbarItemLocation.Before);
+
+            items.Add()
+            .LocateInMenu(ToolbarItemLocateInMenuMode.Auto)
+               .Widget(w => w
+               .Button()
+                .ElementAttr(new Dictionary<string, object>() { { "class", "TopMenuButton" } })
+                .ID("btnDebOfferLines")
+                .Icon("/images/Order_Lines_Highlighted_32x32.png")
+                .HoverStateEnabled(true)
+                .Disabled(true)
+                .Text(@Html.Raw(Localization.lookup("OfferLine")).ToString())
+                .OnClick("LoadDebOfferLines")).Location(ToolbarItemLocation.Before);
+
+            items.Add()
+         .LocateInMenu(ToolbarItemLocateInMenuMode.Auto)
+             .Widget(w => w
+             .Button()
+             .ID("btnQuotToOrder")
+             .Disabled(true)
+             .ElementAttr(new Dictionary<string, object>() { { "class", "TopMenuButton" } })
+             .Icon(Url.Content("~/images/Default_Values_32x32.png"))
+             .HoverStateEnabled(true)
+             .Text(@Html.Raw(Localization.lookup("ConvertOfferToOrder")).ToString())
+             .OnClick(@"function(){ConvertQuotationToOrder();}")
+         ).Location(ToolbarItemLocation.Before);
+
+            items.Add()
+            .LocateInMenu(ToolbarItemLocateInMenuMode.Auto)
+               .Widget(w => w
+               .Button()
+               .ID("btnCreateSalePurchase")
+                   .ElementAttr(new Dictionary<string, object>() { { "class", "TopMenuButton MenuButton" } })
+                   .Icon(Url.Content("~/images/Orders_32x32.png"))
+                   .HoverStateEnabled(true)
+                   .Disabled(true)
+                   .Text(@Html.Raw(Localization.lookup("Create")).ToString() + " " + @Html.Raw(Localization.lookup("PurchaseSalesOrder")).ToString())
+                   .OnClick(@"function(){CreateSalePurchaseOrder();}")
+                   ).Location(ToolbarItemLocation.Before);
+
+            items.Add()
+         .LocateInMenu(ToolbarItemLocateInMenuMode.Auto)
+             .Widget(w => w
+             .Button()
+             .ID("btnUserNotes")
+             .Disabled(true)
+             .ElementAttr(new Dictionary<string, object>() { { "class", "TopMenuButton" } })
+             .Icon(Url.Content("~/images/Note_32x32.png"))
+             .HoverStateEnabled(true)
+             .Text(@Html.Raw(Localization.lookup("UserNotesInfo")).ToString())
+             .OnClick("LoadDebOfferUserNotes")
+         ).Location(ToolbarItemLocation.Before);
+
+            items.Add()
+           .LocateInMenu(ToolbarItemLocateInMenuMode.Auto)
+               .Widget(w => w
+               .Button()
+               .ID("btnUserDocs")
+               .Disabled(true)
+               .ElementAttr(new Dictionary<string, object>() { { "class", "TopMenuButton" } })
+               .Icon(Url.Content("~/images/Attachments_32x32.png"))
+               .HoverStateEnabled(true)
+               .Text(Html.Raw(Localization.lookup("Documents")).ToString())
+           .OnClick("LoadDebOfferDocumentsInfo")
+           ).Location(ToolbarItemLocation.Before);
+
+            items.Add()
+               .LocateInMenu(ToolbarItemLocateInMenuMode.Auto)
+               .Widget(w => w
+               .Button()
+               .ID("btnFollowUp")
+               .Disabled(true)
+               .ElementAttr(new Dictionary<string, object>() { { "class", "TopMenuButton" } })
+               .Icon(Url.Content("~/images/CrmFollowUp.png"))
+               .HoverStateEnabled(true)
+               .Text(Html.Raw(Localization.lookup("FollowUp")).ToString())
+               .OnClick("LoadCrmFollowUpInfo")
+               ).Location(ToolbarItemLocation.Before);
+        }).GlobalToolbar("dxGridDebtorOffers")
+)
+
+@(Html.DevExtreme().DataGrid().CustomGrid("dxGridDebtorOffers")
+    .ID("dxGridDebtorOffers")
+    .DataSource(d => d.Mvc().Controller("DebtorAccount").LoadAction("LoadDebtorOffers").LoadParams(new { IsGridRefreshed = new JS("function() { return isGridRefreshed;}") }).Key("RowId"))
+    .Selection(s => s.Mode(SelectionMode.Single))
+    .ColumnFixing(m => m.Enabled(true))
+    .Grouping(g => g.AutoExpandAll(true))
+    .GroupPanel(g => g.Visible(true))
+    .ColumnAutoWidth(true)
+    .Scrolling(m => m.ShowScrollbar(ShowScrollbarMode.Always))
+            .Columns(c =>
+            {
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.Account).ToString())).DataField("Account");
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.Name).ToString())).DataField("Name");
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.Group).ToString())).DataField("Group");
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.OfferNumber).ToString())).DataField("OfferNumber");
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.DeliveryDate).ToString())).DataField("DeliveryDate").DataType(GridColumnDataType.Date);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.OrderTotal).ToString())).DataField("OrderTotal");
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.NoLines).ToString())).DataField("NoLines").AllowEditing(false);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.Currency).ToString())).DataField("Currency");
+                c.Add().Format(f => { f.Precision(2); f.Type(Format.FixedPoint); }).Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.Margin).ToString())).DataField("Margin");
+                c.Add().Format(f => { f.Precision(2); f.Type(Format.FixedPoint); }).Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.MarginRatio).ToString())).DataField("MarginRatio").Visible(false);
+                c.Add().Format(f => { f.Precision(2); f.Type(Format.FixedPoint); }).Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.CostValue).ToString())).DataField("CostValue").AllowEditing(false).Visible(false);
+                c.Add().Format(f => { f.Precision(2); f.Type(Format.FixedPoint); }).Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.SalesValue).ToString())).DataField("SalesValue").AllowEditing(false).Visible(false);
+                c.Add().Format(f => { f.Precision(2); f.Type(Format.FixedPoint); }).Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.TotalQty).ToString())).DataField("TotalQty").AllowEditing(false).Visible(false);
+                c.Add().Format(f => { f.Precision(2); f.Type(Format.FixedPoint); }).Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.CurBalance).ToString())).DataField("CurBalance").Visible(false);
+                c.Add().Format(f => { f.Precision(2); f.Type(Format.FixedPoint); }).Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.Overdue).ToString())).DataField("Overdue").Visible(false);
+                c.Add().Format(f => { f.Precision(2); f.Type(Format.FixedPoint); }).Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.CreditMax).ToString())).DataField("CreditMax").Visible(false);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.YourRef).ToString())).DataField("YourRef");
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.OurRef).ToString())).DataField("OurRef");
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.Remark).ToString())).DataField("Remark");
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.Requisition).ToString())).DataField("Requisition").Visible(false);
+                c.Add().Format(f => { f.Precision(2); f.Type(Format.FixedPoint); }).Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.EndDiscountPct).ToString())).DataField("EndDiscountPct");
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.Payment).ToString())).DataField("Payment");
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.ContactName).ToString())).DataField("ContactName").AllowEditing(false);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.Employee).ToString())).DataField("Employee").GroupIndex(0);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.Project).ToString())).DataField("Project").Visible(false);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.PrCategory).ToString())).DataField("PrCategory").Visible(false);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.PricesInclVat).ToString())).DataField("PricesInclVat");
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.InvoiceEmail).ToString())).DataField("InvoiceEmail").Visible(false);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.DeliveryName).ToString())).DataField("DeliveryName").Visible(false);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.DeliveryAddress1).ToString())).DataField("DeliveryAddress1").Visible(false);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.DeliveryAddress2).ToString())).DataField("DeliveryAddress2").Visible(false);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.DeliveryAddress3).ToString())).DataField("DeliveryAddress3").Visible(false);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.DeliveryZipCode).ToString())).DataField("DeliveryZipCode").Visible(false);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.DeliveryCity).ToString())).DataField("DeliveryCity").Visible(false);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.DeliveryCountry).ToString())).DataField("DeliveryCountry").Lookup(lookup => lookup
+                  .DataSource(d => d.Array().Data(DataGridHelper.GetEnumList<CountryCode>()).Key("Key")).DisplayExpr("Value").ValueExpr("Key")).Visible(false);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.UpdatedAt).ToString())).DataField("UpdatedAt").DataType(GridColumnDataType.Date).Visible(false);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.Created).ToString())).DataField("Created").DataType(GridColumnDataType.Date);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.InvoiceAccount).ToString())).DataField("InvoiceAccount");
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.PriceList).ToString())).DataField("PriceList");
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.Shipment).ToString())).DataField("Shipment");
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.DeliveryTerm).ToString())).DataField("DeliveryTerm");
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.Discount).ToString())).DataField("Discount").Visible(false);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.TotalBeforeVAT).ToString())).DataField("TotalBeforeVAT").Visible(false);
+                c.Add().Caption(HttpUtility.HtmlDecode(Html.DisplayNameFor(model => model.LayoutGroup).ToString())).DataField("LayoutGroup").Visible(false);
+                if (cmpDetails.NumberOfDimensions < 1)
+                {
+                    c.Add().Caption(cmpDetails._Dim1).DataField("Dimension1").ShowInColumnChooser(false).Visible(false);
+                }
+                else
+                {
+                    c.Add().Caption(cmpDetails._Dim1).DataField("Dimension1").Visible(false);
+                }
+                if (cmpDetails.NumberOfDimensions < 2)
+                {
+                    c.Add().Caption(cmpDetails._Dim2).DataField("Dimension2").ShowInColumnChooser(false).Visible(false);
+                }
+                else
+                {
+                    c.Add().Caption(cmpDetails._Dim2).DataField("Dimension2").Visible(false);
+                }
+                if (cmpDetails.NumberOfDimensions < 3)
+                {
+                    c.Add().Caption(cmpDetails._Dim3).DataField("Dimension3").ShowInColumnChooser(false).Visible(false);
+                }
+                else
+                {
+                    c.Add().Caption(cmpDetails._Dim3).DataField("Dimension3").Visible(false);
+                }
+                if (cmpDetails.NumberOfDimensions < 4)
+                {
+                    c.Add().Caption(cmpDetails._Dim4).DataField("Dimension4").ShowInColumnChooser(false).Visible(false);
+                }
+                else
+                {
+                    c.Add().Caption(cmpDetails._Dim4).DataField("Dimension4").Visible(false);
+                }
+                if (cmpDetails.NumberOfDimensions < 5)
+                {
+                    c.Add().Caption(cmpDetails._Dim5).DataField("Dimension5").ShowInColumnChooser(false).Visible(false);
+                }
+                else
+                {
+                    c.Add().Caption(cmpDetails._Dim5).DataField("Dimension5").Visible(false);
+                }
+                c.Add().CellTemplate(
+                    @<text>
+                        @Html.DevExtreme().Toolbar().ID("InsideTableToolbar").OnInitialized("CommandColumnToolbar_OnInitialized").Items(items =>
+{
+    items.Add()
+    .LocateInMenu(ToolbarItemLocateInMenuMode.Auto)
+        .Widget(w => w
+        .Button()
+           .ID("btnViewDebtorOffer")
+           .Icon("search")
+           .OnClick(@"function(){ShowHidePopupDebtorOffers(data,'ViewDebOffer');}")
+           .HoverStateEnabled(true)
+           .Text(string.Empty)
+           .UseSubmitBehavior(false)
+    ).Location(ToolbarItemLocation.After);
+
+    items.Add()
+     .LocateInMenu(ToolbarItemLocateInMenuMode.Auto)
+         .Widget(w => w
+         .Button()
+            .ID("btnEditDebtorOffer")
+            .Icon("edit")
+            .OnClick(@"function(){ShowHidePopupDebtorOffers(data,'EditDebOffer');}")
+            .HoverStateEnabled(true)
+            .Text(string.Empty)
+            .UseSubmitBehavior(false)
+     ).Location(ToolbarItemLocation.After);
+
+    items.Add()
+     .LocateInMenu(ToolbarItemLocateInMenuMode.Auto)
+         .Widget(w => w
+         .Button()
+            .ID("btnDeleteDebtorOffer")
+            .Icon("trash")
+            .OnClick(@"function(){ShowHidePopupDebtorOffers(data,'DeleteDebOffer');}")
+            .HoverStateEnabled(true)
+            .Text(string.Empty)
+            .UseSubmitBehavior(false)
+     ).Location(ToolbarItemLocation.After);
+})
+
+                    </text>).Fixed(true).FixedPosition(HorizontalEdge.Right);
+            }).OnSelectionChanged("selection_changed")
+)
+
+@(Html.DevExtreme().Popup()
+                    .ID("popupEditDebtorOffers")
+                    .ElementAttr(new Dictionary<string, object> { { "class", "popup" } })
+                    .ShowTitle(true)
+                    .OnContentReady("contentReady")
+                    .ResizeEnabled(true)
+                    .DragEnabled(true)
+                    .Title("")
+                    .Visible(false)
+                    .CloseOnOutsideClick(true)
+                    .ShowCloseButton(true)
+                    .ContentTemplate(@<text>
+                        <form action="/DebtorAccount/Edit" data-ajax="true" data-ajax-begin="" data-ajax-complete="" data-ajax-failure="OnDebtorOffersFailure(data)" data-ajax-method="POST" data-ajax-success="OnDebtorOffersSuccess(data)" id="EditDebOffersForm" method="post">
+                            @Html.AntiForgeryToken()
+                            @DebtorOffersTabData()
+                        </form>
+                    </text>)
+)
+
+@helper DebtorOffersTabData()
+        {
+    @(Html.DevExtreme().TabPanel().ID("tabDebtorOffers").OnContentReady("tabDebOffers_OncontReady").SwipeEnabled(true)
+    )
+
+}
+
+
+@(Html.DevExtreme().Popup()
+                    .ID("popupCreateSalesPurchaseOrder")
+                    .ElementAttr(new Dictionary<string, object> { { "class", "popup" } })
+                    .ShowTitle(true)
+                    //.OnContentReady("contentReady")
+                    .ResizeEnabled(true)
+                    .DragEnabled(true)
+                    .Title("")
+                    .Visible(false)
+                    .CloseOnOutsideClick(false)
+                    .ShowCloseButton(true)
+                    .ContentTemplate(@<text>
+
+                    </text>)
+
+)
+
+@*@(Html.DevExtreme().Popup()
+                    .ID("popupCheckValidity")
+                    .ElementAttr(new Dictionary<string, object> { { "class", "popup" } })
+                    .ShowTitle(true)
+                    .Title(Localization.lookup("Warning"))
+                    .MaxWidth(300)
+                    .Height(160)
+                    .ResizeEnabled(true)
+                    .Visible(false)
+                    .DragEnabled(true)
+                    .CloseOnOutsideClick(true)
+                    .ShowCloseButton(true)
+)*@
+
+@*@using (Html.DevExtreme().NamedTemplate("popupValidityTemplate"))
+{
+    <div>@string.Format("{0}. {1}", Uniconta.ClientTools.Localization.lookup("AccountIsBlocked"), Uniconta.ClientTools.Localization.lookup("ProceedConfirmation"))</div>
+    <div class="modal-footer">
+        @(Html.DevExtreme().Button()
+                                    .ID("btnClose")
+                                    .Text(@Html.Raw(Localization.lookup("OK")).ToString())
+                                    .Type(ButtonType.Normal)
+                                    .OnClick("ValidityCheck_Click"))
+        @(Html.DevExtreme().Button()
+                                    .ID("btnCloseCreateSPO")
+                                    .Text(Html.Raw(Localization.lookup("Cancel")).ToString())
+                                    .Type(ButtonType.Normal)
+                                    .Icon("close").OnClick("CloseChkValidationPopUp"))
+    </div>
+}*@
+
+@*@(Html.DevExtreme().Popup()
+                        .ID("popupGoToLineConfirmation")
+                        .ElementAttr(new Dictionary<string, object> { { "class", "popup" } })
+                        .ShowTitle(true)
+                        .Title(@Html.Raw(Localization.lookup("Confirmation")).ToString())
+                        .Width(400)
+                        .Height(200)
+                        .Visible(false)
+                        .OnContentReady("contentReady")
+                        .ResizeEnabled(true)
+                        .DragEnabled(true)
+                        .ShowCloseButton(true)
+                        .CloseOnOutsideClick(true)
+)*@
+
+@*@using (Html.DevExtreme().NamedTemplate("popupConfirmationTemplate"))
+{
+    <div id="cnfrmText"></div>
+    <div class="modal-footer">
+        @(Html.DevExtreme().Button()
+                                    .ID("btnYes")
+                                    .Text(@Html.Raw(Localization.lookup("Yes")).ToString())
+                                    .Type(ButtonType.Normal)
+                                    .OnClick("FireActionByType"))
+        @(Html.DevExtreme().Button()
+                                    .ID("btnNo")
+                                    .Text(Html.Raw(Localization.lookup("No")).ToString())
+                                    .Type(ButtonType.Normal)
+                                    .Icon("close").OnClick("CloseConfirmationPopUp"))
+    </div>
+}*@
+
+
+@section Scripts {
+    <script type="text/javascript">
+
+        var selectedRowValues;
+
+        function selection_changed(selectedItems) {
+            selectedRowValues = selectedItems.selectedRowsData[0];
+            btnDisableEnable(selectedRowValues);
+        }
+
+        function LoadDebOfferLines(data) {
+            location.href = '@Url.Action("DebtorOfferLines", "DebtorAccount")?rowId=' + selectedRowValues.RowId;
+        }
+        function LoadDebOfferUserNotes(data) {
+            location.href = '@Url.Action("DebOfferUserNotes", "DebtorAccount")?rowId=' + selectedRowValues.RowId;
+        }
+
+        function LoadDebOfferDocumentsInfo(data) {
+            location.href = '@Url.Action("DebOfferDocuments", "DebtorAccount")?rowId=' + selectedRowValues.RowId;
+        }
+
+        function LoadCrmFollowUpInfo(data) {
+            location.href = '@Url.Action("CrmFollowUp", "CRM")?rowId=' + selectedRowValues.RowId + '&' + 'propName=offers';
+        }
+
+        function btnDisableEnable(e) {
+            if (e != null && e != '' && e != 'undefined') {
+                $("#btnDebOfferLines").dxButton("instance").option("disabled", false);
+                $("#btnUserNotes").dxButton("instance").option("disabled", false);
+                $("#btnUserDocs").dxButton("instance").option("disabled", false);
+                $("#btnQuotToOrder").dxButton("instance").option("disabled", false);
+                $("#btnCreateSalePurchase").dxButton("instance").option("disabled", false);
+                $("#btnFollowUp").dxButton("instance").option("disabled", false);
+            }
+            else {
+                $("#btnDebOfferLines").dxButton("instance").option("disabled", true);
+                $("#btnUserNotes").dxButton("instance").option("disabled", true);
+                $("#btnUserDocs").dxButton("instance").option("disabled", true);
+                $("#btnQuotToOrder").dxButton("instance").option("disabled", true);
+                $("#btnCreateSalePurchase").dxButton("instance").option("disabled", true);
+                $("#btnFollowUp").dxButton("instance").option("disabled", true);
+            }
+       }
+    </script>
+}

@@ -1,0 +1,140 @@
+﻿@model Uniconta_Web.Models.Debitor.CWOrderFromOrder
+@using Uniconta.ClientTools;
+@{
+    Layout = null;
+    var url = "/DebtorAccount/CreateSalePurchaseOrder/";
+    var rowId = ViewBag.RowId;
+    string Title = string.Format(@Html.Raw(Localization.lookup("Create")).ToString() + " " + @Html.Raw(Localization.lookup("PurchaseSalesOrder")).ToString());
+}
+
+@*<form action="/DebtorAccount/Edit" data-ajax="true" data-ajax-begin="" data-ajax-complete="" data-ajax-failure="OnDebtorOffersFailure(data)" data-ajax-method="POST" data-ajax-success="OnDebtorOffersSuccess(data)" id="EditOfferSalesPurchaseOrder" method="post">*@
+<form action="/DebtorAccount/Edit" data-ajax="true" data-ajax-begin="" data-ajax-complete="" data-ajax-failure="OnCreateOrderByQuotationFailure(data)" data-ajax-method="POST" data-ajax-success="OnCreateOrderByQuotationSuccess(data)" id="EditOfferSalesPurchaseOrder" method="post">
+    <div>
+        @Html.AntiForgeryToken()
+        <input type="hidden" value="@Title" id="hdnTitle" />
+        <input type="hidden" id="hdnActionName" value=@url>
+        <input type="hidden" id="hdnrowID" name="RowId" value="@rowId">
+        <input type="hidden" id="hdnIsDeb" name="IsDebtor" value="">
+        <input type="hidden" id="hdnSelcIndex" name="SelcIndex" value="">
+        @{
+            @(Html.DevExtreme().Form().ID("dxOfferSPO").ShowValidationSummary(true).ShowRequiredMark(true).ShowOptionalMark(true).ScrollingEnabled(true)
+
+                   .Items(formItems =>
+                   {
+
+                   formItems.AddSimple().Template(@<text>
+            <div class="form-group">
+                @Html.Label(string.Format("{0}", Localization.lookup("OrderType")), new { @class = "control-label col-sm-3" })
+                <div class="col-sm-9">
+                    @(Html.DevExtreme().SelectBox().ID("cmbDCTypeAcc").SearchEnabled(true).OnValueChanged("setAccountsByDCType").OnInitialized("cmbDCTInitialized").DataSource((System.Collections.IEnumerable)ViewData["DCOrdType"]))
+                </div>
+            </div>
+                </text>);
+
+                   formItems.AddSimple().Template(@<text>
+            <div class="form-group">
+                @Html.Label(string.Format("{0}", Localization.lookup("Account")), new { @class = "control-label col-sm-3" })
+                <div class="col-sm-9">
+                    @(Html.DevExtreme().SelectBoxFor(m => m.Account)
+                                                                        .ID("sbDCAccount")
+                                                                        .DataSource(d => d.Mvc()
+                                                                        .Controller("DebtorAccount")
+                                                                        .LoadAction("getAccountsByDCType").Key("KeyStr")
+                                                                        .LoadParams(new { value = new JS("takeDCTypeForAccount") }))
+                                                                        .DataSourceOptions(op => op.Paginate(true).PageSize(20))
+                                                                        .Placeholder(Localization.lookup("Search"))
+                                                                        .ItemTemplate(new JS("AutoComplete_Template"))
+                                                                        .DisplayExpr("KeyStr")
+                                                                        .ValueExpr("KeyStr")
+                                                                        .SearchEnabled(true)
+                                                                        .OnValueChanged("setFrmHdnFields")
+                                                                        .SearchExpr(new string[] { "KeyName", "KeyStr" })
+                    )
+                </div>
+            </div>
+                </text>);
+
+                   formItems.AddSimple().Template(@<text>
+            <div class="form-group">
+                @Html.Label(string.Format("{0}", Localization.lookup("InvertSign")), new { @class = "control-label col-sm-6" })
+                <div class="col-sm-6">
+                    @Html.DevExtreme().CheckBoxFor(m => m.InverSign)
+                </div>
+            </div>
+                </text>);
+
+                   formItems.AddSimple().Template(@<text>
+            <div class="form-group">
+                @*@Html.Label(string.Format("{0} {1}", Localization.lookup("Copy"), Localization.lookup("Attachments")), new { @class = "control-label col-sm-6" })*@
+                @Html.Label(string.Format("{0}", Localization.lookup("CopyAttachments")), new { @class = "control-label col-sm-6" })
+                <div class="col-sm-6">
+                    @Html.DevExtreme().CheckBoxFor(m => m.copyAttachment)
+                </div>
+            </div>
+                </text>);
+
+                   formItems.AddSimple().Template(@<text>
+            <div class="form-group">
+                @Html.Label(string.Format("{0} {1}", Localization.lookup("Copy"), Localization.lookup("DeliveryAddr")), new { @class = "control-label col-sm-6" })
+                <div class="col-sm-6">
+                    @Html.DevExtreme().CheckBoxFor(m => m.copyDeliveryAddress)
+                </div>
+            </div>
+                </text>);
+
+                   formItems.AddSimple().Template(@<text>
+            <div class="form-group">
+               @Html.Label(string.Format("{0}", Localization.lookup("RecalculatePrices")), new { @class = "control-label col-sm-6" })
+                <div class="col-sm-6">
+                    @Html.DevExtreme().CheckBoxFor(m => m.reCalculatePrice)
+                </div>
+            </div>
+                </text>);
+
+                   formItems.AddSimple().Template(@<text>
+            <div class="form-group" id="ordPerchase" style="display:none;">
+                @Html.Label(string.Format("{0}", Localization.lookup("PerSupplier")), new { @class = "control-label col-sm-6" })
+                <div class="col-sm-6">
+                    @Html.DevExtreme().CheckBoxFor(m => m.orderPerPurchaseAccount)
+                </div>
+            </div>
+                </text>);
+
+                   formItems.AddSimple().Template(@<text>
+            <div class="modal-footer">
+                @(Html.DevExtreme().Button().ID("btnCreateSPO")
+                                        .Text(Html.Raw(Localization.lookup("OK")).ToString())
+                                         .Type(ButtonType.Success)
+                                        .Icon("save")
+                                        .OnClick("CheckEligibilityForCreateSPOrd")
+                                        @*.UseSubmitBehavior(true))*@
+                                        .UseSubmitBehavior(false))
+
+                @(Html.DevExtreme().Button().ID("btnCloseCreateSPO")
+                                                .Text(Html.Raw(Localization.lookup("Cancel")).ToString())
+                                                .Type(ButtonType.Normal)
+                                                .Icon("close").OnClick("CloseCreateSPOPopUp"))
+            </div>
+                </text>);
+                   }
+                   )
+            )
+        }
+    </div>
+
+</form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
