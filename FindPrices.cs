@@ -315,6 +315,10 @@ namespace Uniconta.API.DebtorCreditor
                 return t2;
 #endif
         }
+         public Task2 DebitorChanged()
+        {
+            return LoadingTask = LoadBaseData(api);
+        }
         private async Task LookRate(DCOrderLineClient rec, double price, byte From, byte To)
         {
             var Rate = await api.session.ExchangeRate((Currencies)From, (Currencies)To, DateTime.Now, api.CompanyEntity);
@@ -503,7 +507,10 @@ namespace Uniconta.API.DebtorCreditor
         }
 
         // project
-
+ public Task3 DebitorChanged()
+        {
+            return LoadingTask = LoadBaseData(api);
+        }
         public async Task GetCustomerPrice(ProjectJournalLineClient orderLine, bool IsNewItem)
         {
             if (!this.UseCustomerPrices)
