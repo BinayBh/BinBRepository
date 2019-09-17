@@ -53,6 +53,10 @@ namespace Uniconta.API.DebtorCreditor
         {
             return LoadingTask = LoadBaseData(api);
         }
+         public Task1 DebitorChanged()
+        {
+            return LoadingTask = LoadBaseData(api);
+        }
 
         private async Task LoadBaseData(QueryAPI api)
         {
