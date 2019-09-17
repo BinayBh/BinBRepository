@@ -128,6 +128,12 @@ namespace Uniconta.API.DebtorCreditor
 
             LoadingTask = null; // we are done
         }
+        
+         public Task5 DebitorChanged()
+        {
+            return LoadingTask = LoadBaseData(api);
+        }
+
 
         public async Task loadPriceList()
         {
